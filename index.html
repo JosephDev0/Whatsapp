@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Capture Photo</title>
+  <style>
+    #videoElement {
+      width: 100%;
+      height: auto;
+      border: 1px solid black;
+      display: none; /* Hide the video stream for auto-capture */
+    }
+    #captureStatus {
+      font-size: 18px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Photo Captured Automatically</h1>
+  <div id="captureStatus">Capturing photo...</div>
+
+  <!-- Video element to preview the camera feed (hidden, used for auto-capture) -->
+  <video id="videoElement" autoplay></video>
+
+  <!-- Canvas to capture the photo -->
+  <canvas id="canvas" style="display: none;"></canvas>
+
+  <script>
+    // Wait for the page to load and then start the camera and capture automatically
+    window.onload = () => {
+      startCamera();
+    };
+
+    // Function to start the camera and capture photo immediately
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        .then((stream) => {
+          const videoElement = document.getElementById('videoElement');
+          videoElement.srcObject = stream;
+          
+          // Wait for the video to load enough to capture the first frame
+          videoElement.onloadedmetadata = () => {
+            // Automatically capture the photo after the video metadata is loaded
+            capturePhoto();
+          };
+        })
+        .catch((error) => {
+          console.error("Error accessing the camera: ", error);
+          document.getElementById('captureStatus').innerText = "Error accessing the camera!";
+        });
+    }
+
+    // Function to capture the photo automatically
+    function capturePhoto() {
+      const videoElement = document.getElementById('videoElement');
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      const width = videoElement.videoWidth;
+      const height = videoElement.videoHeight;
+
+      // Set canvas size to match the video feed
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw the current frame from the video to the canvas
+      context.drawImage(videoElement, 0, 0, width, height);
+
+      // Convert the canvas image to a data URL (base64 encoded image)
+      const imageData = canvas.toDataURL('image/png');
+
+      // Update the status to indicate that the photo has been captured
+      document.getElementById('captureStatus').innerText = "Photo Captured! Sending...";
+
+      // Send the captured image to a server (this is a placeholder function)
+      sendImageToServer(imageData);
+    }
+
+    // Placeholder function to simulate sending the image
+    function sendImageToServer(imageData) {
+      // Here, you would typically send the image to your server using fetch or an API call
+      console.log("Captured image data ready to send:", imageData);
+
+      // You could also send it to an email or other service (replace with your actual server logic)
+    }
+  </script>
+</body>
+</html>
